@@ -1,14 +1,4 @@
-#!/bin/bash
-source "$HOME/.config/sketchybar/icon_map.sh"
-
-CACHE_FILE="/tmp/sketchybar_cache/front_app"
-mkdir -p "$(dirname "$CACHE_FILE")"
-
-FRONT_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true')
-
-__icon_map "$FRONT_APP"
-sketchybar -m --set front_app icon=":$icon_result:" label="$FRONT_APP"
-
+#!/usr/bin/env bash
 
 ### START-OF-ICON-MAP
 function __icon_map() {
@@ -802,39 +792,3 @@ function __icon_map() {
     esac
 }
 ### END-OF-ICON-MAP
-
-# Get front app using fastest available method
-get_front_app() {
-  FRONT_APP=$(lsappinfo info -only name "$(lsappinfo front)" 2>/dev/null | awk -F'"' '/^name:/ {print $2}')
-  
-  if [ -z "$FRONT_APP" ]; then
-    FRONT_APP=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true')
-  fi
-  
-  echo "$FRONT_APP"
-}
-
-# Get current front app
-FRONT_APP=$(get_front_app)
-
-# Skip update if app hasn't changed
-if [ -f "$CACHE_FILE" ] && [ "$(cat "$CACHE_FILE")" = "$FRONT_APP" ]; then
-  exit 0
-fi
-
-# Save current app
-echo "$FRONT_APP" > "$CACHE_FILE"
-
-# Get app icon
-icon_map "$FRONT_APP"
-APP_ICON=":$icon_result:"
-
-# Format display name
-if [[ ${#FRONT_APP} -gt 25 ]]; then
-  DISPLAY_NAME="${FRONT_APP:0:22}..."
-else
-  DISPLAY_NAME="$FRONT_APP"
-fi
-
-APP_ICON=":finder:" # Test with a single, known icon
-sketchybar -m --set front_app icon="$APP_ICON"
